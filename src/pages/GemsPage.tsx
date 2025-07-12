@@ -69,12 +69,12 @@ const GemsPage: React.FC = () => {
     series: [{
         name: 'Transaction Status', type: 'pie', radius: ['40%', '70%'],
         data: [
-          { value: statusCounts.JSON_SENT, name: 'JSON Sent', itemStyle: { color: '#4F46E5' } },
-          { value: statusCounts.PDF_SENT, name: 'PDF Sent', itemStyle: { color: '#10B981' } },
-          { value: statusCounts.HRMS_RECEIVED, name: 'HRMS Received', itemStyle: { color: '#8B5CF6' } },
-          { value: statusCounts.DDO_RECEIVED, name: 'DDO Received', itemStyle: { color: '#06B6D4' } },
-          { value: statusCounts.DDO_REJECTED, name: 'DDO Rejected', itemStyle: { color: '#F59E0B' } },
-          { value: statusCounts.HRMS_REJECTED, name: 'HRMS Rejection', itemStyle: { color: '#EF4444' } },
+          { value: statusCounts.JSON_SENT, name: 'JSON Sent', itemStyle: { color: '#3B82F6' } }, // blue-500
+          { value: statusCounts.PDF_SENT, name: 'PDF Sent', itemStyle: { color: '#0EA5E9' } }, // sky-500
+          { value: statusCounts.HRMS_RECEIVED, name: 'HRMS Received', itemStyle: { color: '#4F46E5' } }, // indigo-600
+          { value: statusCounts.DDO_RECEIVED, name: 'DDO Received', itemStyle: { color: '#64748B' } }, // slate-500
+          { value: statusCounts.DDO_REJECTED, name: 'DDO Rejected', itemStyle: { color: '#EF4444' } }, // red-500
+          { value: statusCounts.HRMS_REJECTED, name: 'HRMS Rejection', itemStyle: { color: '#E11D48' } }, // rose-600
         ],
         emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
       }]
@@ -88,24 +88,24 @@ const GemsPage: React.FC = () => {
     series: [{
         type: 'bar', barWidth: '60%',
         data: [
-          { value: statusCounts.JSON_SENT, itemStyle: { color: '#4F46E5' } },
-          { value: statusCounts.PDF_SENT, itemStyle: { color: '#10B981' } },
-          { value: statusCounts.HRMS_RECEIVED, itemStyle: { color: '#8B5CF6' } },
-          { value: statusCounts.DDO_RECEIVED, itemStyle: { color: '#06B6D4' } },
-          { value: statusCounts.DDO_REJECTED, itemStyle: { color: '#F59E0B' } },
-          { value: statusCounts.HRMS_REJECTED, itemStyle: { color: '#EF4444' } },
+          { value: statusCounts.JSON_SENT, itemStyle: { color: '#3B82F6' } },
+          { value: statusCounts.PDF_SENT, itemStyle: { color: '#0EA5E9' } },
+          { value: statusCounts.HRMS_RECEIVED, itemStyle: { color: '#4F46E5' } },
+          { value: statusCounts.DDO_RECEIVED, itemStyle: { color: '#64748B' } },
+          { value: statusCounts.DDO_REJECTED, itemStyle: { color: '#EF4444' } },
+          { value: statusCounts.HRMS_REJECTED, itemStyle: { color: '#E11D48' } },
         ],
         borderRadius: 4,
       }]
   };
 
   const statusCards = [
-    { key: 'JSON_SENT', title: 'JSON Sent', value: statusCounts.JSON_SENT, icon: Send, iconColor: 'text-indigo-600', bgColor: 'bg-indigo-100', borderColor: 'hover:border-indigo-500' },
-    { key: 'PDF_SENT', title: 'PDF Sent', value: statusCounts.PDF_SENT, icon: FileText, iconColor: 'text-emerald-600', bgColor: 'bg-emerald-100', borderColor: 'hover:border-emerald-500' },
-    { key: 'HRMS_RECEIVED', title: 'HRMS Received', value: statusCounts.HRMS_RECEIVED, icon: CheckCircle, iconColor: 'text-purple-600', bgColor: 'bg-purple-100', borderColor: 'hover:border-purple-500' },
+    { key: 'JSON_SENT', title: 'JSON Sent', value: statusCounts.JSON_SENT, icon: Send, iconColor: 'text-blue-600', bgColor: 'bg-blue-100', borderColor: 'hover:border-blue-500' },
+    { key: 'PDF_SENT', title: 'PDF Sent', value: statusCounts.PDF_SENT, icon: FileText, iconColor: 'text-sky-600', bgColor: 'bg-sky-100', borderColor: 'hover:border-sky-500' },
+    { key: 'HRMS_RECEIVED', title: 'HRMS Received', value: statusCounts.HRMS_RECEIVED, icon: CheckCircle, iconColor: 'text-indigo-600', bgColor: 'bg-indigo-100', borderColor: 'hover:border-indigo-500' },
     { key: 'HRMS_REJECTED', title: 'HRMS Rejection', value: statusCounts.HRMS_REJECTED, icon: XCircle, iconColor: 'text-rose-600', bgColor: 'bg-rose-100', borderColor: 'hover:border-rose-500' },
-    { key: 'DDO_RECEIVED', title: 'DDO Received', value: statusCounts.DDO_RECEIVED, icon: CheckSquare, iconColor: 'text-cyan-600', bgColor: 'bg-cyan-100', borderColor: 'hover:border-cyan-500' },
-    { key: 'DDO_REJECTED', title: 'DDO Rejected', value: statusCounts.DDO_REJECTED, icon: XSquare, iconColor: 'text-amber-600', bgColor: 'bg-amber-100', borderColor: 'hover:border-amber-500' },
+    { key: 'DDO_RECEIVED', title: 'DDO Received', value: statusCounts.DDO_RECEIVED, icon: CheckSquare, iconColor: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'hover:border-slate-500' },
+    { key: 'DDO_REJECTED', title: 'DDO Rejected', value: statusCounts.DDO_REJECTED, icon: XSquare, iconColor: 'text-red-600', bgColor: 'bg-red-100', borderColor: 'hover:border-red-500' },
   ];
 
   const handleStatusCardClick = (status: string) => {
@@ -157,7 +157,7 @@ const GemsPage: React.FC = () => {
                       return (
                         <motion.div
                           key={card.key}
-                          whileHover={{ y: -5, shadow: 'lg' }}
+                          whileHover={{ y: -4, scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)" }}
                           onClick={() => handleStatusCardClick(card.key)}
                           className={`relative bg-white p-5 rounded-xl shadow-sm border transition-all cursor-pointer ${
                             selectedStatus === card.key ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
@@ -221,8 +221,8 @@ const GemsPage: React.FC = () => {
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{transaction.TRANSACTION_ID}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.GE_NUMBER}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.EVENT_NAME}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">{transaction.PDF_FILE_NAME}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-purple-600">{transaction.JSONSENTDATE}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-sky-600">{transaction.PDF_FILE_NAME}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600">{transaction.JSONSENTDATE}</td>
                             </motion.tr>
                           ))}
                         </tbody>

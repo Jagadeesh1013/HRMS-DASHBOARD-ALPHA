@@ -11,25 +11,25 @@ const Sidebar: React.FC = () => {
       path: '/gems',
       label: 'GEMS',
       icon: Database,
-      color: 'from-purple-500 to-indigo-600',
+      color: 'from-blue-500 to-indigo-600',
     },
     {
       path: '/gpf',
       label: 'GPF',
       icon: FileSpreadsheet,
-      color: 'from-blue-500 to-cyan-600',
+      color: 'from-sky-500 to-cyan-600',
     },
   ];
 
   return (
     <div className="w-64 bg-slate-900 text-gray-300 min-h-screen flex flex-col">
       <div className="p-6">
-        <h1 className="text-xl font-bold text-white mb-10 text-center tracking-wider">
-          KA-HRMS
+        <h1 className="text-lg font-bold text-white mb-12 text-center tracking-wider">
+          HRMS DASHBOARD
         </h1>
         
-        <nav className="space-y-3">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-4">
+        <nav className="space-y-4">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-4">
             MODULES
           </h2>
           

@@ -13,28 +13,28 @@ const Dashboard: React.FC = () => {
       value: '2,847',
       change: '+12.5%',
       icon: FileText,
-      color: 'from-blue-500 to-blue-600',
+      color: 'from-blue-500 to-indigo-600',
     },
     {
       title: 'Active Users',
       value: '1,234',
       change: '+8.2%',
       icon: Users,
-      color: 'from-green-500 to-green-600',
+      color: 'from-sky-500 to-cyan-600',
     },
     {
       title: 'Processing',
       value: '89',
       change: '-2.1%',
       icon: Activity,
-      color: 'from-yellow-500 to-yellow-600',
+      color: 'from-amber-500 to-orange-600',
     },
     {
       title: 'Completed',
       value: '2,758',
       change: '+15.3%',
       icon: BarChart,
-      color: 'from-purple-500 to-purple-600',
+      color: 'from-slate-500 to-slate-600',
     },
   ];
 

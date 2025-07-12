@@ -64,9 +64,9 @@ const GpfPage: React.FC = () => {
     series: [{
         name: 'GPF Status', type: 'pie', radius: ['40%', '70%'],
         data: [
-          { value: statusCounts.JSON_SENT, name: 'JSON Sent', itemStyle: { color: '#3B82F6' } },
-          { value: statusCounts.HRMS_RECEIVED, name: 'HRMS Received', itemStyle: { color: '#10B981' } },
-          { value: statusCounts.HRMS_REJECTED, name: 'HRMS Rejected', itemStyle: { color: '#EF4444' } },
+          { value: statusCounts.JSON_SENT, name: 'JSON Sent', itemStyle: { color: '#3B82F6' } }, // blue-500
+          { value: statusCounts.HRMS_RECEIVED, name: 'HRMS Received', itemStyle: { color: '#0EA5E9' } }, // sky-500
+          { value: statusCounts.HRMS_REJECTED, name: 'HRMS Rejected', itemStyle: { color: '#EF4444' } }, // red-500
         ],
         emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
       }]
@@ -81,7 +81,7 @@ const GpfPage: React.FC = () => {
         type: 'bar', barWidth: '50%',
         data: [
           { value: statusCounts.JSON_SENT, itemStyle: { color: '#3B82F6' } },
-          { value: statusCounts.HRMS_RECEIVED, itemStyle: { color: '#10B981' } },
+          { value: statusCounts.HRMS_RECEIVED, itemStyle: { color: '#0EA5E9' } },
           { value: statusCounts.HRMS_REJECTED, itemStyle: { color: '#EF4444' } },
         ],
         borderRadius: 4,
@@ -90,7 +90,7 @@ const GpfPage: React.FC = () => {
 
   const statusCards = [
     { key: 'JSON_SENT', title: 'JSON Sent', value: statusCounts.JSON_SENT, icon: Send, iconColor: 'text-blue-600', bgColor: 'bg-blue-100', borderColor: 'hover:border-blue-500' },
-    { key: 'HRMS_RECEIVED', title: 'HRMS Acceptance', value: statusCounts.HRMS_RECEIVED, icon: UserCheck, iconColor: 'text-green-600', bgColor: 'bg-green-100', borderColor: 'hover:border-green-500' },
+    { key: 'HRMS_RECEIVED', title: 'HRMS Acceptance', value: statusCounts.HRMS_RECEIVED, icon: UserCheck, iconColor: 'text-sky-600', bgColor: 'bg-sky-100', borderColor: 'hover:border-sky-500' },
     { key: 'HRMS_REJECTED', title: 'HRMS Rejection', value: statusCounts.HRMS_REJECTED, icon: UserX, iconColor: 'text-red-600', bgColor: 'bg-red-100', borderColor: 'hover:border-red-500' },
   ];
 
@@ -125,7 +125,7 @@ const GpfPage: React.FC = () => {
                   return (
                     <motion.div
                       key={card.key}
-                      whileHover={{ y: -5, shadow: 'lg' }}
+                      whileHover={{ y: -4, scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)" }}
                       onClick={() => setSelectedStatus(selectedStatus === card.key ? null : card.key)}
                       className={`relative bg-white p-5 rounded-xl shadow-sm border transition-all cursor-pointer ${
                         selectedStatus === card.key ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
@@ -187,8 +187,8 @@ const GpfPage: React.FC = () => {
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{transaction.KGID}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.NAME}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.JOINING_DATE}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">{transaction.POLICY_NO}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-purple-600">{transaction.JSON_SENT_DATE}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-sky-600">{transaction.POLICY_NO}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600">{transaction.JSON_SENT_DATE}</td>
                             </motion.tr>
                           ))}
                         </tbody>
