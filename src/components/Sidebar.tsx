@@ -28,32 +28,36 @@ const Sidebar: React.FC = () => {
           HRMS DASHBOARD
         </h1>
         
-        <nav className="space-y-4">
+        <nav>
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-4">
             MODULES
           </h2>
           
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname.startsWith(item.path);
-            
-            return (
-              <Link key={item.path} to={item.path}>
-                <motion.div
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive
-                      ? `bg-gradient-to-r ${item.color} text-white shadow-lg`
-                      : 'hover:bg-slate-700 hover:text-white'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </motion.div>
-              </Link>
-            );
-          })}
+          <div className="space-y-2">
+            {menuItems.map((item, index) => {
+              const Icon = item.icon;
+              const isActive = location.pathname.startsWith(item.path);
+              
+              return (
+                <Link key={item.path} to={item.path}>
+                  <motion.div
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                      index === 1 ? 'mt-3' : ''
+                    } ${
+                      isActive
+                        ? `bg-gradient-to-r ${item.color} text-white shadow-lg`
+                        : 'hover:bg-slate-700 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </motion.div>
+                </Link>
+              );
+            })}
+          </div>
         </nav>
       </div>
     </div>

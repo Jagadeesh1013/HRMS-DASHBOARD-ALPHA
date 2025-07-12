@@ -64,9 +64,9 @@ const GpfPage: React.FC = () => {
     series: [{
         name: 'GPF Status', type: 'pie', radius: ['40%', '70%'],
         data: [
-          { value: statusCounts.JSON_SENT, name: 'JSON Sent', itemStyle: { color: '#3B82F6' } }, // blue-500
-          { value: statusCounts.HRMS_RECEIVED, name: 'HRMS Received', itemStyle: { color: '#0EA5E9' } }, // sky-500
-          { value: statusCounts.HRMS_REJECTED, name: 'HRMS Rejected', itemStyle: { color: '#EF4444' } }, // red-500
+          { value: statusCounts.JSON_SENT, name: 'JSON Sent', itemStyle: { color: '#14B8A6' } },
+          { value: statusCounts.HRMS_RECEIVED, name: 'HRMS Received', itemStyle: { color: '#22C55E' } },
+          { value: statusCounts.HRMS_REJECTED, name: 'HRMS Rejected', itemStyle: { color: '#DC2626' } },
         ],
         emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
       }]
@@ -80,9 +80,9 @@ const GpfPage: React.FC = () => {
     series: [{
         type: 'bar', barWidth: '50%',
         data: [
-          { value: statusCounts.JSON_SENT, itemStyle: { color: '#3B82F6' } },
-          { value: statusCounts.HRMS_RECEIVED, itemStyle: { color: '#0EA5E9' } },
-          { value: statusCounts.HRMS_REJECTED, itemStyle: { color: '#EF4444' } },
+          { value: statusCounts.JSON_SENT, itemStyle: { color: '#14B8A6' } },
+          { value: statusCounts.HRMS_RECEIVED, itemStyle: { color: '#22C55E' } },
+          { value: statusCounts.HRMS_REJECTED, itemStyle: { color: '#DC2626' } },
         ],
         borderRadius: 4,
       }]
@@ -106,7 +106,7 @@ const GpfPage: React.FC = () => {
               <p className="text-gray-600">Monitor and track GPF transaction statuses and employee data</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
               <div className="flex items-center space-x-2 mb-4">
                 <Filter className="w-5 h-5 text-blue-600" />
                 <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
@@ -118,7 +118,7 @@ const GpfPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-8 mt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {statusCards.map((card) => {
                   const CardIcon = card.icon;

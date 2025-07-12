@@ -69,12 +69,12 @@ const GemsPage: React.FC = () => {
     series: [{
         name: 'Transaction Status', type: 'pie', radius: ['40%', '70%'],
         data: [
-          { value: statusCounts.JSON_SENT, name: 'JSON Sent', itemStyle: { color: '#3B82F6' } }, // blue-500
-          { value: statusCounts.PDF_SENT, name: 'PDF Sent', itemStyle: { color: '#0EA5E9' } }, // sky-500
-          { value: statusCounts.HRMS_RECEIVED, name: 'HRMS Received', itemStyle: { color: '#4F46E5' } }, // indigo-600
-          { value: statusCounts.DDO_RECEIVED, name: 'DDO Received', itemStyle: { color: '#64748B' } }, // slate-500
-          { value: statusCounts.DDO_REJECTED, name: 'DDO Rejected', itemStyle: { color: '#EF4444' } }, // red-500
-          { value: statusCounts.HRMS_REJECTED, name: 'HRMS Rejection', itemStyle: { color: '#E11D48' } }, // rose-600
+          { value: statusCounts.JSON_SENT, name: 'JSON Sent', itemStyle: { color: '#14B8A6' } },
+          { value: statusCounts.PDF_SENT, name: 'PDF Sent', itemStyle: { color: '#06B6D4' } },
+          { value: statusCounts.HRMS_RECEIVED, name: 'HRMS Received', itemStyle: { color: '#22C55E' } },
+          { value: statusCounts.DDO_RECEIVED, name: 'DDO Received', itemStyle: { color: '#84CC16' } },
+          { value: statusCounts.DDO_REJECTED, name: 'DDO Rejected', itemStyle: { color: '#DC2626' } },
+          { value: statusCounts.HRMS_REJECTED, name: 'HRMS Rejection', itemStyle: { color: '#F97316' } },
         ],
         emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
       }]
@@ -88,12 +88,12 @@ const GemsPage: React.FC = () => {
     series: [{
         type: 'bar', barWidth: '60%',
         data: [
-          { value: statusCounts.JSON_SENT, itemStyle: { color: '#3B82F6' } },
-          { value: statusCounts.PDF_SENT, itemStyle: { color: '#0EA5E9' } },
-          { value: statusCounts.HRMS_RECEIVED, itemStyle: { color: '#4F46E5' } },
-          { value: statusCounts.DDO_RECEIVED, itemStyle: { color: '#64748B' } },
-          { value: statusCounts.DDO_REJECTED, itemStyle: { color: '#EF4444' } },
-          { value: statusCounts.HRMS_REJECTED, itemStyle: { color: '#E11D48' } },
+          { value: statusCounts.JSON_SENT, itemStyle: { color: '#14B8A6' } },
+          { value: statusCounts.PDF_SENT, itemStyle: { color: '#06B6D4' } },
+          { value: statusCounts.HRMS_RECEIVED, itemStyle: { color: '#22C55E' } },
+          { value: statusCounts.DDO_RECEIVED, itemStyle: { color: '#84CC16' } },
+          { value: statusCounts.DDO_REJECTED, itemStyle: { color: '#DC2626' } },
+          { value: statusCounts.HRMS_REJECTED, itemStyle: { color: '#F97316' } },
         ],
         borderRadius: 4,
       }]
@@ -130,7 +130,7 @@ const GemsPage: React.FC = () => {
               </motion.button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
               <div className="flex items-center space-x-2 mb-4">
                 <Filter className="w-5 h-5 text-blue-600" />
                 <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
@@ -149,7 +149,7 @@ const GemsPage: React.FC = () => {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mb-6 overflow-hidden"
+                  className="mb-8 mt-6"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     {statusCards.map((card) => {
