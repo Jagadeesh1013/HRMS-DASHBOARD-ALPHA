@@ -1,0 +1,5 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The .dashboard-bg class with the SVG background has been removed for a cleaner, solid background color defined in the components. */
