@@ -2,4 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-/* The .dashboard-bg class with the SVG background has been removed for a cleaner, solid background color defined in the components. */
+/* Animation delay utilities */
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-3000 {
+  animation-delay: 3s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Custom pulse animation for background elements */
+@keyframes customPulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.animate-custom-pulse {
+  animation: customPulse 4s ease-in-out infinite;
+}

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { DEMO_USERS } from '../utils/mockData';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { loginUser, signupUser } from '../services/apiService';
 
 interface User {
   username: string;
@@ -25,50 +25,38 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    try {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+    } catch (error) {
+      console.error("Failed to parse user from localStorage", error);
+      localStorage.removeItem('user');
+    }
+  }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    // Check against demo credentials
-    const validUser = DEMO_USERS.find(
-      u => u.username === username && u.password === password
-    );
-
-    if (validUser) {
-      const userData = { 
-        username: validUser.username, 
-        role: validUser.role 
-      };
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+    const response = await loginUser(username, password);
+    if (response.success && response.user) {
+      setUser(response.user);
+      localStorage.setItem('user', JSON.stringify(response.user));
       return true;
     }
-
-    // Fallback - accept any non-empty credentials for demo
-    if (username && password) {
-      const userData = { 
-        username, 
-        role: 'User' 
-      };
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      return true;
-    }
-
     return false;
   };
 
   const signup = async (username: string, password: string, confirmPassword: string): Promise<boolean> => {
-    // Simulate API call with validation
-    if (username && password && password === confirmPassword && password.length >= 6) {
-      const userData = { 
-        username, 
-        role: 'New User' 
-      };
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+    if (password !== confirmPassword || password.length < 6) {
+      return false;
+    }
+    const response = await signupUser(username, password);
+    if (response.success && response.user) {
+      setUser(response.user);
+      localStorage.setItem('user', JSON.stringify(response.user));
       return true;
     }
     return false;

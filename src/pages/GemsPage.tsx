@@ -1,40 +1,57 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactECharts from 'echarts-for-react';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
-import { generateGemsData, getStatusCounts, GemsTransaction } from '../utils/mockData';
-import { Filter, Eye, EyeOff, Download, Info, Send, FileText, CheckCircle, XCircle, CheckSquare, XSquare } from 'lucide-react';
+import { GemsTransaction } from '../utils/mockData';
+import { getGemsStats, getGemsTransactions } from '../services/apiService';
+import { Filter, Eye, EyeOff, Download, Info, Send, FileText, CheckCircle, XCircle, CheckSquare, XSquare, Loader } from 'lucide-react';
 
 const GemsPage: React.FC = () => {
-  const [data] = useState<GemsTransaction[]>(() => generateGemsData(611));
-  const [filters, setFilters] = useState({
-    geNumber: '',
-    eventName: '',
-    fromDate: '',
-    toDate: '',
-  });
+  const [statusCounts, setStatusCounts] = useState({ JSON_SENT: 0, PDF_SENT: 0, HRMS_RECEIVED: 0, HRMS_REJECTED: 0, DDO_RECEIVED: 0, DDO_REJECTED: 0 });
+  const [tableData, setTableData] = useState<GemsTransaction[]>([]);
+  const [filters, setFilters] = useState({ geNumber: '', eventName: '', fromDate: '', toDate: '' });
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [showCards, setShowCards] = useState(true);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+  const [isTableLoading, setIsTableLoading] = useState(false);
 
-  // This simulates the backend filtering. The filters apply to the whole dataset.
-  const filteredDataForStats = useMemo(() => {
-    return data.filter(item => {
-      const matchesGeNumber = !filters.geNumber || item.GE_NUMBER.toLowerCase().includes(filters.geNumber.toLowerCase());
-      const matchesEventName = !filters.eventName || item.EVENT_NAME.toLowerCase().includes(filters.eventName.toLowerCase());
-      const matchesFromDate = !filters.fromDate || item.JSONSENTDATE >= filters.fromDate;
-      const matchesToDate = !filters.toDate || item.JSONSENTDATE <= filters.toDate;
-      return matchesGeNumber && matchesEventName && matchesFromDate && matchesToDate;
-    });
-  }, [data, filters]);
+  const fetchStats = useCallback(async () => {
+    setIsStatsLoading(true);
+    try {
+      const counts = await getGemsStats(filters);
+      setStatusCounts(counts);
+    } catch (error) {
+      console.error("Failed to fetch GEMS stats:", error);
+    } finally {
+      setIsStatsLoading(false);
+    }
+  }, [filters]);
+
+  const fetchTransactions = useCallback(async () => {
+    if (!selectedStatus) {
+      setTableData([]);
+      return;
+    }
+    setIsTableLoading(true);
+    try {
+      const data = await getGemsTransactions(selectedStatus, filters);
+      setTableData(data);
+    } catch (error) {
+      console.error("Failed to fetch GEMS transactions:", error);
+      setTableData([]);
+    } finally {
+      setIsTableLoading(false);
+    }
+  }, [selectedStatus, filters]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
   
-  // This simulates the separate API call for the table, filtered by status.
-  const tableData = useMemo(() => {
-    if (!selectedStatus) return [];
-    return filteredDataForStats.filter(item => item.status === selectedStatus);
-  }, [selectedStatus, filteredDataForStats]);
-
-  const statusCounts = useMemo(() => getStatusCounts(filteredDataForStats), [filteredDataForStats]);
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   const downloadCSV = (dataToExport: GemsTransaction[]) => {
     if (dataToExport.length === 0) {
@@ -69,12 +86,12 @@ const GemsPage: React.FC = () => {
     series: [{
         name: 'Transaction Status', type: 'pie', radius: ['40%', '70%'],
         data: [
-          { value: statusCounts.JSON_SENT, name: 'JSON Sent', itemStyle: { color: '#14B8A6' } },
-          { value: statusCounts.PDF_SENT, name: 'PDF Sent', itemStyle: { color: '#06B6D4' } },
+          { value: statusCounts.JSON_SENT, name: 'JSON Sent', itemStyle: { color: '#3B82F6' } },
+          { value: statusCounts.PDF_SENT, name: 'PDF Sent', itemStyle: { color: '#0EA5E9' } },
           { value: statusCounts.HRMS_RECEIVED, name: 'HRMS Received', itemStyle: { color: '#22C55E' } },
           { value: statusCounts.DDO_RECEIVED, name: 'DDO Received', itemStyle: { color: '#84CC16' } },
-          { value: statusCounts.DDO_REJECTED, name: 'DDO Rejected', itemStyle: { color: '#DC2626' } },
-          { value: statusCounts.HRMS_REJECTED, name: 'HRMS Rejection', itemStyle: { color: '#F97316' } },
+          { value: statusCounts.DDO_REJECTED, name: 'DDO Rejected', itemStyle: { color: '#F97316' } },
+          { value: statusCounts.HRMS_REJECTED, name: 'HRMS Rejection', itemStyle: { color: '#EF4444' } },
         ],
         emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
       }]
@@ -88,24 +105,24 @@ const GemsPage: React.FC = () => {
     series: [{
         type: 'bar', barWidth: '60%',
         data: [
-          { value: statusCounts.JSON_SENT, itemStyle: { color: '#14B8A6' } },
-          { value: statusCounts.PDF_SENT, itemStyle: { color: '#06B6D4' } },
+          { value: statusCounts.JSON_SENT, itemStyle: { color: '#3B82F6' } },
+          { value: statusCounts.PDF_SENT, itemStyle: { color: '#0EA5E9' } },
           { value: statusCounts.HRMS_RECEIVED, itemStyle: { color: '#22C55E' } },
           { value: statusCounts.DDO_RECEIVED, itemStyle: { color: '#84CC16' } },
-          { value: statusCounts.DDO_REJECTED, itemStyle: { color: '#DC2626' } },
-          { value: statusCounts.HRMS_REJECTED, itemStyle: { color: '#F97316' } },
+          { value: statusCounts.DDO_REJECTED, itemStyle: { color: '#F97316' } },
+          { value: statusCounts.HRMS_REJECTED, itemStyle: { color: '#EF4444' } },
         ],
         borderRadius: 4,
       }]
   };
 
   const statusCards = [
-    { key: 'JSON_SENT', title: 'JSON Sent', value: statusCounts.JSON_SENT, icon: Send, iconColor: 'text-blue-600', bgColor: 'bg-blue-100', borderColor: 'hover:border-blue-500' },
-    { key: 'PDF_SENT', title: 'PDF Sent', value: statusCounts.PDF_SENT, icon: FileText, iconColor: 'text-sky-600', bgColor: 'bg-sky-100', borderColor: 'hover:border-sky-500' },
-    { key: 'HRMS_RECEIVED', title: 'HRMS Received', value: statusCounts.HRMS_RECEIVED, icon: CheckCircle, iconColor: 'text-indigo-600', bgColor: 'bg-indigo-100', borderColor: 'hover:border-indigo-500' },
-    { key: 'HRMS_REJECTED', title: 'HRMS Rejection', value: statusCounts.HRMS_REJECTED, icon: XCircle, iconColor: 'text-rose-600', bgColor: 'bg-rose-100', borderColor: 'hover:border-rose-500' },
-    { key: 'DDO_RECEIVED', title: 'DDO Received', value: statusCounts.DDO_RECEIVED, icon: CheckSquare, iconColor: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'hover:border-slate-500' },
-    { key: 'DDO_REJECTED', title: 'DDO Rejected', value: statusCounts.DDO_REJECTED, icon: XSquare, iconColor: 'text-red-600', bgColor: 'bg-red-100', borderColor: 'hover:border-red-500' },
+    { key: 'JSON_SENT', title: 'JSON Sent', shortTitle: 'JSON\nSent', value: statusCounts.JSON_SENT, icon: Send, iconBgGradient: 'from-blue-500 to-indigo-600', cardBg: 'bg-blue-50', borderColor: 'hover:border-blue-500' },
+    { key: 'PDF_SENT', title: 'PDF Sent', shortTitle: 'PDF Sent', value: statusCounts.PDF_SENT, icon: FileText, iconBgGradient: 'from-sky-500 to-cyan-600', cardBg: 'bg-sky-50', borderColor: 'hover:border-sky-500' },
+    { key: 'HRMS_RECEIVED', title: 'HRMS Received', shortTitle: 'HRMS\nReceived', value: statusCounts.HRMS_RECEIVED, icon: CheckCircle, iconBgGradient: 'from-green-500 to-emerald-600', cardBg: 'bg-green-50', borderColor: 'hover:border-green-500' },
+    { key: 'HRMS_REJECTED', title: 'HRMS Rejection', shortTitle: 'HRMS\nRejection', value: statusCounts.HRMS_REJECTED, icon: XCircle, iconBgGradient: 'from-red-500 to-rose-600', cardBg: 'bg-red-50', borderColor: 'hover:border-red-500' },
+    { key: 'DDO_RECEIVED', title: 'DDO Received', shortTitle: 'DDO\nReceived', value: statusCounts.DDO_RECEIVED, icon: CheckSquare, iconBgGradient: 'from-lime-500 to-green-600', cardBg: 'bg-lime-50', borderColor: 'hover:border-lime-500' },
+    { key: 'DDO_REJECTED', title: 'DDO Rejected', shortTitle: 'DDO\nRejected', value: statusCounts.DDO_REJECTED, icon: XSquare, iconBgGradient: 'from-amber-500 to-orange-600', cardBg: 'bg-orange-50', borderColor: 'hover:border-orange-500' },
   ];
 
   const handleStatusCardClick = (status: string) => {
@@ -145,46 +162,32 @@ const GemsPage: React.FC = () => {
 
             <AnimatePresence>
               {showCards && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-8 mt-6"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    {statusCards.map((card) => {
-                      const CardIcon = card.icon;
-                      return (
-                        <motion.div
-                          key={card.key}
-                          whileHover={{ y: -4, scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)" }}
-                          onClick={() => handleStatusCardClick(card.key)}
-                          className={`relative bg-white p-5 rounded-xl shadow-sm border transition-all cursor-pointer ${
-                            selectedStatus === card.key ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
-                          } ${card.borderColor}`}
-                        >
-                          <div className="flex justify-between items-start">
-                            <div className={`p-3 rounded-lg ${card.bgColor}`}>
-                              <CardIcon className={`w-6 h-6 ${card.iconColor}`} />
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-8 mt-6">
+                  {isStatsLoading ? (
+                    <div className="flex justify-center items-center h-24"><Loader className="w-8 h-8 animate-spin text-blue-600" /></div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                      {statusCards.map((card) => {
+                        const CardIcon = card.icon;
+                        return (
+                          <motion.div key={card.key} whileHover={{ y: -2, scale: 1.02 }} onClick={() => handleStatusCardClick(card.key)} className={`relative ${card.cardBg} p-4 rounded-xl shadow-sm border transition-all cursor-pointer ${selectedStatus === card.key ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'} ${card.borderColor}`}>
+                            <div className="flex items-start justify-between mb-3">
+                              <div className={`p-2 rounded-lg bg-gradient-to-br ${card.iconBgGradient}`}><CardIcon className="w-5 h-5 text-white" /></div>
+                              <div className="text-right"><p className="text-2xl font-bold text-gray-800">{card.value}</p></div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-3xl font-bold text-gray-800">{card.value}</p>
-                            </div>
-                          </div>
-                          <div className="mt-4">
-                            <h3 className="text-base font-semibold text-gray-800">{card.title}</h3>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
+                            <div><h3 className="text-sm font-semibold text-gray-700 leading-tight whitespace-pre-line">{card.shortTitle}</h3></div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><ReactECharts option={pieChartOptions} style={{ height: '350px' }} /></div>
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><ReactECharts option={barChartOptions} style={{ height: '350px' }} /></div>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><ReactECharts option={pieChartOptions} style={{ height: '350px' }} showLoading={isStatsLoading} /></div>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><ReactECharts option={barChartOptions} style={{ height: '350px' }} showLoading={isStatsLoading} /></div>
             </div>
 
             <AnimatePresence>
@@ -196,38 +199,42 @@ const GemsPage: React.FC = () => {
                         <h2 className="text-lg font-semibold text-gray-900">{selectedStatus.replace(/_/g, ' ')} Details</h2>
                         <div className="flex items-center space-x-2 text-sm text-gray-600">
                           <span>Showing {tableData.length} transactions</span>
-                          <button onClick={() => downloadCSV(tableData)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-                            <Download className="w-4 h-4 ml-2 cursor-pointer hover:text-blue-600" />
-                          </button>
+                          <button onClick={() => downloadCSV(tableData)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors"><Download className="w-4 h-4 ml-2 cursor-pointer hover:text-blue-600" /></button>
                         </div>
                       </div>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GE Number</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PDF File Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">JSON Sent Date</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {tableData.slice(0, 10).map((transaction, index) => (
-                            <motion.tr key={transaction.TRANSACTION_ID} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.05 }} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{transaction.TRANSACTION_ID}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.GE_NUMBER}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.EVENT_NAME}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-sky-600">{transaction.PDF_FILE_NAME}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600">{transaction.JSONSENTDATE}</td>
-                            </motion.tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    {isTableLoading ? (
+                      <div className="flex justify-center items-center h-48"><Loader className="w-8 h-8 animate-spin text-blue-600" /></div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event ID</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GE Number</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PDF File Name</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">JSON Sent Date</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {tableData.slice(0, 10).map((transaction, index) => (
+                              <motion.tr key={transaction.TRANSACTION_ID} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.05 }} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{transaction.TRANSACTION_ID}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">{transaction.EVENT_ID}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.GE_NUMBER}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.EVENT_NAME}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-sky-600">{transaction.PDF_FILE_NAME}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600">{transaction.JSONSENTDATE}</td>
+                              </motion.tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
