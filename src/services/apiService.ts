@@ -1,111 +1,107 @@
-import {
-  generateGemsData,
-  generateGpfData,
-  getStatusCounts,
-  getGpfStatusCounts,
-  DEMO_USERS,
-  GemsTransaction,
-  GpfTransaction,
-} from '../utils/mockData';
+import axios from 'axios';
+import { GemsTransaction, GpfTransaction } from '../utils/mockData';
 
-// Simulate API latency
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// --- STEP 1: CONFIGURE YOUR BACKEND API BASE URL ---
+// Replace 'http://localhost:8080/api' with the base URL of your Spring Boot application.
+const apiClient = axios.create({
+  baseURL: 'http://localhost:8080/api', // <-- IMPORTANT: SET YOUR API BASE URL HERE
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// You can also add an interceptor to include auth tokens in requests
+apiClient.interceptors.request.use(config => {
+  // const token = localStorage.getItem('authToken');
+  // if (token) {
+  //   config.headers.Authorization = `Bearer ${token}`;
+  // }
+  return config;
+});
+
+// --- STEP 2: UPDATE API ENDPOINTS FOR EACH FUNCTION ---
 
 // --- GEMS API ---
 
 export const getGemsStats = async (filters: { geNumber?: string; eventName?: string; fromDate?: string; toDate?: string; }) => {
-  await sleep(500); // Simulate network delay
-  
-  // In a real app, filters would be sent to the backend
-  const allData = generateGemsData(611); // Assuming we get all data and filter client-side for mock
-  const filteredData = allData.filter(item => {
-      const matchesGeNumber = !filters.geNumber || item.GE_NUMBER.toLowerCase().includes(filters.geNumber.toLowerCase());
-      const matchesEventName = !filters.eventName || item.EVENT_NAME.toLowerCase().includes(filters.eventName.toLowerCase());
-      const matchesFromDate = !filters.fromDate || item.JSONSENTDATE >= filters.fromDate;
-      const matchesToDate = !filters.toDate || item.JSONSENTDATE <= filters.toDate;
-      return matchesGeNumber && matchesEventName && matchesFromDate && matchesToDate;
-  });
-
-  return getStatusCounts(filteredData);
+  try {
+    // Endpoint: /gems/stats
+    const response = await apiClient.get('/gems/stats', { params: filters });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching GEMS stats:", error);
+    // Return a default zeroed structure on error
+    return { JSON_SENT: 0, PDF_SENT: 0, HRMS_RECEIVED: 0, HRMS_REJECTED: 0, DDO_RECEIVED: 0, DDO_REJECTED: 0 };
+  }
 };
 
 export const getGemsTransactions = async (status: string, filters: { geNumber?: string; eventName?: string; fromDate?: string; toDate?: string; }): Promise<GemsTransaction[]> => {
-    await sleep(700);
-    
-    // In a real app, status and filters would be query params
-    const allData = generateGemsData(611);
-    const filteredData = allData.filter(item => {
-        const matchesStatus = item.status === status;
-        const matchesGeNumber = !filters.geNumber || item.GE_NUMBER.toLowerCase().includes(filters.geNumber.toLowerCase());
-        const matchesEventName = !filters.eventName || item.EVENT_NAME.toLowerCase().includes(filters.eventName.toLowerCase());
-        const matchesFromDate = !filters.fromDate || item.JSONSENTDATE >= filters.fromDate;
-        const matchesToDate = !filters.toDate || item.JSONSENTDATE <= filters.toDate;
-        return matchesStatus && matchesGeNumber && matchesEventName && matchesFromDate && matchesToDate;
+  try {
+    // Endpoint: /gems/transactions
+    const response = await apiClient.get('/gems/transactions', {
+      params: { status, ...filters }
     });
-
-    return filteredData;
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching GEMS transactions:", error);
+    return [];
+  }
 };
-
 
 // --- GPF API ---
 
 export const getGpfStats = async (filters: { kgid?: string; fromDate?: string; toDate?: string; }) => {
-  await sleep(500);
-  
-  const allData = generateGpfData(120);
-  const filteredData = allData.filter(item => {
-      const matchesKgid = !filters.kgid || item.KGID.toLowerCase().includes(filters.kgid.toLowerCase());
-      const matchesFromDate = !filters.fromDate || item.JSON_SENT_DATE >= filters.fromDate;
-      const matchesToDate = !filters.toDate || item.JSON_SENT_DATE <= filters.toDate;
-      return matchesKgid && matchesFromDate && matchesToDate;
-  });
-
-  return getGpfStatusCounts(filteredData);
+  try {
+    // Endpoint: /gpf/stats
+    const response = await apiClient.get('/gpf/stats', { params: filters });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching GPF stats:", error);
+    return { JSON_SENT: 0, HRMS_RECEIVED: 0, HRMS_REJECTED: 0 };
+  }
 };
 
 export const getGpfTransactions = async (status: string, filters: { kgid?: string; fromDate?: string; toDate?: string; }): Promise<GpfTransaction[]> => {
-    await sleep(700);
-
-    const allData = generateGpfData(120);
-    const filteredData = allData.filter(item => {
-        const matchesStatus = item.status === status;
-        const matchesKgid = !filters.kgid || item.KGID.toLowerCase().includes(filters.kgid.toLowerCase());
-        const matchesFromDate = !filters.fromDate || item.JSON_SENT_DATE >= filters.fromDate;
-        const matchesToDate = !filters.toDate || item.JSON_SENT_DATE <= filters.toDate;
-        return matchesStatus && matchesKgid && matchesFromDate && matchesToDate;
+  try {
+    // Endpoint: /gpf/transactions
+    const response = await apiClient.get('/gpf/transactions', {
+      params: { status, ...filters }
     });
-
-    return filteredData;
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching GPF transactions:", error);
+    return [];
+  }
 };
-
 
 // --- Auth API ---
 
-export const loginUser = async (username: string, password: string): Promise<{ success: boolean; user?: { username: string; role: string } }> => {
-  await sleep(800);
-  
-  const validUser = DEMO_USERS.find(
-    u => u.username === username && u.password === password
-  );
-
-  if (validUser) {
-    return { success: true, user: { username: validUser.username, role: validUser.role } };
+export const loginUser = async (username: string, password: string): Promise<{ success: boolean; user?: { username: string; role: string }, token?: string }> => {
+  try {
+    // Endpoint: /auth/login
+    const response = await apiClient.post('/auth/login', { username, password });
+    if (response.data && response.data.token) {
+      // localStorage.setItem('authToken', response.data.token); // Optional: store JWT
+      return { success: true, user: response.data.user, token: response.data.token };
+    }
+    return { success: false };
+  } catch (error) {
+    console.error("Login failed:", error);
+    return { success: false };
   }
-  
-  // Fallback for demo purposes
-  if (username && password) {
-    return { success: true, user: { username, role: 'User' } };
-  }
-
-  return { success: false };
 };
 
-export const signupUser = async (username: string, password: string): Promise<{ success: boolean; user?: { username: string; role: string } }> => {
-  await sleep(800);
-  
-  if (username && password && password.length >= 6) {
-    return { success: true, user: { username, role: 'New User' } };
+export const signupUser = async (username: string, password: string): Promise<{ success: boolean; user?: { username: string; role: string }, token?: string }> => {
+  try {
+    // Endpoint: /auth/signup
+    const response = await apiClient.post('/auth/signup', { username, password });
+    if (response.data && response.data.token) {
+      // localStorage.setItem('authToken', response.data.token); // Optional: store JWT
+      return { success: true, user: response.data.user, token: response.data.token };
+    }
+    return { success: false };
+  } catch (error) {
+    console.error("Signup failed:", error);
+    return { success: false };
   }
-  
-  return { success: false };
 };

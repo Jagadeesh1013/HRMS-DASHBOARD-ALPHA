@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { LogIn, User, Lock, Eye, EyeOff, Info } from 'lucide-react';
-import { DEMO_USERS } from '../utils/mockData';
+import { LogIn, User, Lock, Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -11,7 +10,6 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [showCredentials, setShowCredentials] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -36,6 +34,7 @@ const Login: React.FC = () => {
     if (!validateForm()) return;
     
     setIsLoading(true);
+    setErrors({});
     try {
       const success = await login(username, password);
       if (success) {
@@ -48,11 +47,6 @@ const Login: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleDemoLogin = (demoUser: typeof DEMO_USERS[0]) => {
-    setUsername(demoUser.username);
-    setPassword(demoUser.password);
   };
 
   return (
@@ -91,42 +85,6 @@ const Login: React.FC = () => {
               </motion.div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
               <p className="text-gray-600">Sign in to your HRMS account</p>
-            </div>
-
-            {/* Demo Credentials Info */}
-            <div className="mb-6">
-              <motion.button
-                onClick={() => setShowCredentials(!showCredentials)}
-                className="w-full flex items-center justify-center space-x-2 p-3 bg-blue-50/80 text-blue-700 rounded-lg hover:bg-blue-100/80 transition-colors backdrop-blur-sm"
-              >
-                <Info className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  {showCredentials ? 'Hide' : 'Show'} Demo Credentials
-                </span>
-              </motion.button>
-              
-              {showCredentials && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-3 p-4 bg-gray-50/80 backdrop-blur-sm rounded-lg"
-                >
-                  <p className="text-sm text-gray-600 mb-3">Click any credential to auto-fill:</p>
-                  <div className="space-y-2">
-                    {DEMO_USERS.map((user, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleDemoLogin(user)}
-                        className="w-full text-left p-2 text-xs bg-white/80 backdrop-blur-sm rounded border hover:bg-blue-50/80 hover:border-blue-200 transition-colors"
-                      >
-                        <span className="font-medium text-blue-600">{user.username}</span> / {user.password}
-                        <span className="text-gray-500 ml-2">({user.role})</span>
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
