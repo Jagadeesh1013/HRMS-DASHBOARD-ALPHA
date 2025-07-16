@@ -2,23 +2,34 @@ import axios from 'axios';
 import { GemsTransaction, GpfTransaction } from '../utils/mockData';
 import { cleanFilters } from '../utils/cleanFilters';
 
-// --- STEP 1: CONFIGURE YOUR BACKEND API BASE URL ---
+// --- STEP 1: CONFIGURE AXIOS CLIENT ---
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080/api', // <-- IMPORTANT: SET YOUR API BASE URL HERE
+  baseURL: 'http://localhost:8080/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+<<<<<<< HEAD
+// --- STEP 2: ATTACH JWT AUTH HEADER ---
+=======
 // --- JWT AUTHENTICATION REQUEST INTERCEPTOR ---
+>>>>>>> a0e5663337b0baee8b919c091f382bc4baa93740
 apiClient.interceptors.request.use(config => {
   const token = localStorage.getItem('authToken');
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers['Authorization'] = `Bearer ${token}`;
   }
   return config;
 });
 
+<<<<<<< HEAD
+// --- STEP 3: ERROR HANDLER ---
+const handleApiError = (context: string, error: unknown, fallback: any) => {
+  console.error(`[API Error] ${context}:`, error);
+  return fallback;
+};
+=======
 // --- NEW: GLOBAL AUTHENTICATION RESPONSE INTERCEPTOR ---
 // This will automatically handle 401/403 errors and log the user out.
 apiClient.interceptors.response.use(
@@ -42,97 +53,123 @@ apiClient.interceptors.response.use(
 
 
 // --- GEMS API ---
+>>>>>>> a0e5663337b0baee8b919c091f382bc4baa93740
 
-export const getGemsStats = async (filters: { geNumber?: string; eventName?: string; fromDate?: string; toDate?: string; }) => {
+// --- GEMS API ---
+export const getGemsStats = async (filters: {
+  geNumber?: string;
+  eventName?: string;
+  fromDate?: string;
+  toDate?: string;
+}) => {
   const cleanedParams = cleanFilters(filters);
   console.log('[API Request] GET /gems/stats with params:', cleanedParams);
   try {
     const response = await apiClient.get('/gems/stats', { params: cleanedParams });
-    console.log('[API Response] GET /gems/stats:', response.data);
+    console.log('[API Response] /gems/stats:', response.data);
     return response.data;
   } catch (error) {
-    console.error("[API Error] Failed to fetch GEMS stats:", error);
-    return { JSON_SENT: 0, PDF_SENT: 0, HRMS_RECEIVED: 0, HRMS_REJECTED: 0, DDO_RECEIVED: 0, DDO_REJECTED: 0 };
+    return handleApiError("Failed to fetch GEMS stats", error, {
+      JSON_SENT: 0,
+      PDF_SENT: 0,
+      HRMS_RECEIVED: 0,
+      HRMS_REJECTED: 0,
+      DDO_RECEIVED: 0,
+      DDO_REJECTED: 0,
+    });
   }
 };
 
-export const getGemsTransactions = async (status: string | null, filters: { geNumber?: string; eventName?: string; fromDate?: string; toDate?: string; }): Promise<GemsTransaction[]> => {
+export const getGemsTransactions = async (
+  status: string | null,
+  filters: { geNumber?: string; eventName?: string; fromDate?: string; toDate?: string }
+): Promise<GemsTransaction[]> => {
   const params = {
-    ...(status && { status }), // Add status only if it's not null
+    ...(status && { status }),
     ...cleanFilters(filters),
   };
   console.log('[API Request] GET /gems/transactions with params:', params);
   try {
     const response = await apiClient.get('/gems/transactions', { params });
-    console.log(`[API Response] GET /gems/transactions (Status: ${status || 'ALL'})`, response.data);
+    console.log(`[API Response] /gems/transactions (Status: ${status || 'ALL'}):`, response.data);
     return response.data;
   } catch (error) {
-    console.error(`[API Error] Failed to fetch GEMS transactions (Status: ${status || 'ALL'}):`, error);
-    return [];
+    return handleApiError("Failed to fetch GEMS transactions", error, []);
   }
 };
 
 // --- GPF API ---
-
-export const getGpfStats = async (filters: { kgid?: string; fromDate?: string; toDate?: string; }) => {
+export const getGpfStats = async (filters: {
+  kgid?: string;
+  fromDate?: string;
+  toDate?: string;
+}) => {
   const cleanedParams = cleanFilters(filters);
   console.log('[API Request] GET /gpf/stats with params:', cleanedParams);
   try {
     const response = await apiClient.get('/gpf/stats', { params: cleanedParams });
-    console.log('[API Response] GET /gpf/stats:', response.data);
+    console.log('[API Response] /gpf/stats:', response.data);
     return response.data;
   } catch (error) {
-    console.error("[API Error] Failed to fetch GPF stats:", error);
-    return { JSON_SENT: 0, HRMS_RECEIVED: 0, HRMS_REJECTED: 0 };
+    return handleApiError("Failed to fetch GPF stats", error, {
+      JSON_SENT: 0,
+      HRMS_RECEIVED: 0,
+      HRMS_REJECTED: 0,
+    });
   }
 };
 
-export const getGpfTransactions = async (status: string | null, filters: { kgid?: string; fromDate?: string; toDate?: string; }): Promise<GpfTransaction[]> => {
+export const getGpfTransactions = async (
+  status: string | null,
+  filters: { kgid?: string; fromDate?: string; toDate?: string }
+): Promise<GpfTransaction[]> => {
   const params = {
-    ...(status && { status }), // Add status only if it's not null
+    ...(status && { status }),
     ...cleanFilters(filters),
   };
   console.log('[API Request] GET /gpf/transactions with params:', params);
   try {
     const response = await apiClient.get('/gpf/transactions', { params });
-    console.log(`[API Response] GET /gpf/transactions (Status: ${status || 'ALL'})`, response.data);
+    console.log(`[API Response] /gpf/transactions (Status: ${status || 'ALL'}):`, response.data);
     return response.data;
   } catch (error) {
-    console.error(`[API Error] Failed to fetch GPF transactions (Status: ${status || 'ALL'}):`, error);
-    return [];
+    return handleApiError("Failed to fetch GPF transactions", error, []);
   }
 };
 
-// --- Auth API ---
+// --- AUTH API ---
+type AuthResponse = {
+  success: boolean;
+  user?: { username: string; role: string };
+  token?: string;
+};
 
-export const loginUser = async (username: string, password: string): Promise<{ success: boolean; user?: { username: string; role: string }, token?: string }> => {
+export const loginUser = async (username: string, password: string): Promise<AuthResponse> => {
   console.log('[API Request] POST /auth/login for user:', username);
   try {
     const response = await apiClient.post('/auth/login', { username, password });
-    if (response.data && response.data.token) {
-      console.log('[API Response] Login successful for user:', username);
+    if (response.data?.token) {
+      console.log('[API Response] Login successful:', response.data);
       return { success: true, user: response.data.user, token: response.data.token };
     }
-    console.warn('[API Response] Login failed, no token received.');
+    console.warn('[API Warning] Login failed: no token received');
     return { success: false };
   } catch (error) {
-    console.error("[API Error] Login failed:", error);
-    return { success: false };
+    return handleApiError("Login failed", error, { success: false });
   }
 };
 
-export const signupUser = async (username: string, password: string): Promise<{ success: boolean; user?: { username: string; role: string }, token?: string }> => {
+export const signupUser = async (username: string, password: string): Promise<AuthResponse> => {
   console.log('[API Request] POST /auth/signup for user:', username);
   try {
     const response = await apiClient.post('/auth/signup', { username, password });
-    if (response.data && response.data.token) {
-      console.log('[API Response] Signup successful for user:', username);
+    if (response.data?.token) {
+      console.log('[API Response] Signup successful:', response.data);
       return { success: true, user: response.data.user, token: response.data.token };
     }
-    console.warn('[API Response] Signup failed, no token received.');
+    console.warn('[API Warning] Signup failed: no token received');
     return { success: false };
   } catch (error) {
-    console.error("[API Error] Signup failed:", error);
-    return { success: false };
+    return handleApiError("Signup failed", error, { success: false });
   }
 };
