@@ -6,7 +6,7 @@ import Navbar from '../components/Navbar';
 import { GemsTransaction } from '../utils/mockData';
 import { getGemsStats, getGemsTransactions } from '../services/apiService';
 import { useDebounce } from '../hooks/useDebounce';
-import { Filter, Eye, EyeOff, Download, Info, Send, FileText, CheckCircle, XCircle, CheckSquare, XSquare, Loader, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Filter, Eye, EyeOff, Download, Info, Send, FileText, CheckCircle, XCircle, CheckSquare, XSquare, Loader, RotateCcw, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -17,7 +17,7 @@ const GemsPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [showCards, setShowCards] = useState(true);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
-  const [isTableLoading, setIsTableLoading] = useState(false);
+  const [isTableLoading, setIsTableLoading] = useState(true); // Start as true for initial load
   const [currentPage, setCurrentPage] = useState(1);
 
   const debouncedFilters = useDebounce(filters, 500);
@@ -35,10 +35,6 @@ const GemsPage: React.FC = () => {
   }, [debouncedFilters]);
 
   const fetchTransactions = useCallback(async () => {
-    if (!selectedStatus) {
-      setTableData([]);
-      return;
-    }
     setIsTableLoading(true);
     setCurrentPage(1); // Reset to first page on new data fetch
     try {
@@ -62,6 +58,7 @@ const GemsPage: React.FC = () => {
 
   const handleClearFilters = () => {
     setFilters({ geNumber: '', eventName: '', fromDate: '', toDate: '' });
+    setSelectedStatus(null); // Also reset status selection
   };
   
   const downloadCSV = (dataToExport: GemsTransaction[]) => {
@@ -136,11 +133,11 @@ const GemsPage: React.FC = () => {
     { key: 'DDO_REJECTED', title: 'DDO Rejected', shortTitle: 'DDO\nRejected', value: statusCounts.DDO_REJECTED, icon: XSquare, iconBgGradient: 'from-amber-500 to-orange-600', cardBg: 'bg-orange-50', borderColor: 'hover:border-orange-500' },
   ];
 
-  const handleStatusCardClick = (status: string) => {
+  const handleStatusCardClick = (status: string | null) => {
     setSelectedStatus(selectedStatus === status ? null : status);
   };
 
-  // Pagination Logic
+  const totalTransactions = Object.values(statusCounts).reduce((a, b) => a + b, 0);
   const totalPages = Math.ceil(tableData.length / ITEMS_PER_PAGE);
   const paginatedData = tableData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -170,7 +167,7 @@ const GemsPage: React.FC = () => {
                   </div>
                   <button onClick={handleClearFilters} className="flex items-center space-x-2 px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
                     <RotateCcw className="w-3 h-3" />
-                    <span>Reset</span>
+                    <span>Reset All</span>
                   </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -187,7 +184,14 @@ const GemsPage: React.FC = () => {
                   {isStatsLoading ? (
                     <div className="flex justify-center items-center h-24"><Loader className="w-8 h-8 animate-spin text-blue-600" /></div>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                      <motion.div key="ALL" whileHover={{ y: -2, scale: 1.02 }} onClick={() => handleStatusCardClick(null)} className={`relative bg-slate-50 p-4 rounded-xl shadow-sm border transition-all cursor-pointer ${selectedStatus === null ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'} hover:border-slate-500`}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="p-2 rounded-lg bg-gradient-to-br from-slate-500 to-gray-600"><Layers className="w-5 h-5 text-white" /></div>
+                          <div className="text-right"><p className="text-2xl font-bold text-gray-800">{totalTransactions}</p></div>
+                        </div>
+                        <div><h3 className="text-sm font-semibold text-gray-700 leading-tight whitespace-pre-line">All Transactions</h3></div>
+                      </motion.div>
                       {statusCards.map((card) => {
                         const CardIcon = card.icon;
                         return (
@@ -211,84 +215,72 @@ const GemsPage: React.FC = () => {
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><ReactECharts option={barChartOptions} style={{ height: '350px' }} showLoading={isStatsLoading} /></div>
             </div>
 
-            <AnimatePresence>
-              {selectedStatus && (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="p-6 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-gray-900">{selectedStatus.replace(/_/g, ' ')} Details</h2>
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <span>Showing {tableData.length} transactions</span>
-                          <button onClick={() => downloadCSV(tableData)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors"><Download className="w-4 h-4 ml-2 cursor-pointer hover:text-blue-600" /></button>
-                        </div>
-                      </div>
-                    </div>
-                    {isTableLoading ? (
-                      <div className="flex justify-center items-center h-48"><Loader className="w-8 h-8 animate-spin text-blue-600" /></div>
-                    ) : tableData.length === 0 ? (
-                      <div className="text-center py-10 px-6">
-                        <Info className="mx-auto h-10 w-10 text-gray-400" />
-                        <h3 className="mt-2 text-lg font-medium text-gray-900">No Transactions Found</h3>
-                        <p className="mt-1 text-sm text-gray-500">There are no transactions for the selected status and filters.</p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="overflow-x-auto">
-                          <table className="w-full">
-                            <thead className="bg-gray-50">
-                              <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GE Number</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PDF File Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">JSON Sent Date</th>
-                              </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                              {paginatedData.map((transaction, index) => (
-                                <motion.tr key={transaction.TRANSACTION_ID} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.05 }} className="hover:bg-gray-50">
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{transaction.TRANSACTION_ID}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">{transaction.EVENT_ID}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.GE_NUMBER}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.EVENT_NAME}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-sky-600">{transaction.PDF_FILE_NAME}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600">{transaction.JSONSENTDATE}</td>
-                                </motion.tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                        {totalPages > 1 && (
-                          <div className="p-4 flex items-center justify-between border-t border-gray-200">
-                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 flex items-center space-x-2">
-                              <ChevronLeft className="w-4 h-4" />
-                              <span>Previous</span>
-                            </button>
-                            <span className="text-sm text-gray-700">Page {currentPage} of {totalPages}</span>
-                            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 flex items-center space-x-2">
-                              <span>Next</span>
-                              <ChevronRight className="w-4 h-4" />
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    )}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {selectedStatus ? `${selectedStatus.replace(/_/g, ' ')} Details` : 'All GEMS Transactions'}
+                  </h2>
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <span>Showing {tableData.length} transactions</span>
+                    <button onClick={() => downloadCSV(tableData)} className="p-1 hover:bg-gray-100 rounded-lg transition-colors"><Download className="w-4 h-4 ml-2 cursor-pointer hover:text-blue-600" /></button>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {!selectedStatus && (
-              <div className="text-center py-10 px-6 bg-white rounded-xl shadow-sm border border-gray-100">
-                <Info className="mx-auto h-10 w-10 text-blue-400" />
-                <h3 className="mt-2 text-lg font-medium text-gray-900">View Transaction Details</h3>
-                <p className="mt-1 text-sm text-gray-500">Click on any status card above to display the corresponding transaction list here.</p>
+                </div>
               </div>
-            )}
+              {isTableLoading ? (
+                <div className="flex justify-center items-center h-48"><Loader className="w-8 h-8 animate-spin text-blue-600" /></div>
+              ) : tableData.length === 0 ? (
+                <div className="text-center py-10 px-6">
+                  <Info className="mx-auto h-10 w-10 text-gray-400" />
+                  <h3 className="mt-2 text-lg font-medium text-gray-900">No Transactions Found</h3>
+                  <p className="mt-1 text-sm text-gray-500">There are no transactions for the selected status and filters.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GE Number</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PDF File Name</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">JSON Sent Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {paginatedData.map((transaction, index) => (
+                          <motion.tr key={transaction.TRANSACTION_ID} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.05 }} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{transaction.TRANSACTION_ID}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">{transaction.EVENT_ID}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.GE_NUMBER}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.EVENT_NAME}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-sky-600">{transaction.PDF_FILE_NAME}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600">{transaction.JSONSENTDATE}</td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {totalPages > 1 && (
+                    <div className="p-4 flex items-center justify-between border-t border-gray-200">
+                      <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 flex items-center space-x-2">
+                        <ChevronLeft className="w-4 h-4" />
+                        <span>Previous</span>
+                      </button>
+                      <span className="text-sm text-gray-700">Page {currentPage} of {totalPages}</span>
+                      <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 flex items-center space-x-2">
+                        <span>Next</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </motion.div>
         </div>
       </div>
