@@ -2,7 +2,6 @@ import axios from 'axios';
 import { GemsTransaction, GpfTransaction } from '../utils/mockData';
 
 // --- STEP 1: CONFIGURE YOUR BACKEND API BASE URL ---
-// Replace 'http://localhost:8080/api' with the base URL of your Spring Boot application.
 const apiClient = axios.create({
   baseURL: 'http://localhost:8080/api', // <-- IMPORTANT: SET YOUR API BASE URL HERE
   headers: {
@@ -10,36 +9,47 @@ const apiClient = axios.create({
   },
 });
 
-// You can also add an interceptor to include auth tokens in requests
+// --- JWT AUTHENTICATION INTERCEPTOR ---
+// This interceptor automatically adds the JWT token to every request if it exists.
 apiClient.interceptors.request.use(config => {
-  // const token = localStorage.getItem('authToken');
-  // if (token) {
-  //   config.headers.Authorization = `Bearer ${token}`;
-  // }
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
-// --- STEP 2: UPDATE API ENDPOINTS FOR EACH FUNCTION ---
+// --- UTILITY FOR OPTIONAL FILTERS ---
+// This helper function removes any null, undefined, or empty string properties
+// from the filter object, so they are not sent to the backend.
+const cleanFilters = (filters: object) => {
+  const cleaned: { [key: string]: any } = {};
+  for (const key in filters) {
+    const value = (filters as any)[key];
+    if (value !== null && value !== undefined && value !== '') {
+      cleaned[key] = value;
+    }
+  }
+  return cleaned;
+};
+
 
 // --- GEMS API ---
 
 export const getGemsStats = async (filters: { geNumber?: string; eventName?: string; fromDate?: string; toDate?: string; }) => {
   try {
-    // Endpoint: /gems/stats
-    const response = await apiClient.get('/gems/stats', { params: filters });
+    const response = await apiClient.get('/gems/stats', { params: cleanFilters(filters) });
     return response.data;
   } catch (error) {
     console.error("Error fetching GEMS stats:", error);
-    // Return a default zeroed structure on error
     return { JSON_SENT: 0, PDF_SENT: 0, HRMS_RECEIVED: 0, HRMS_REJECTED: 0, DDO_RECEIVED: 0, DDO_REJECTED: 0 };
   }
 };
 
 export const getGemsTransactions = async (status: string, filters: { geNumber?: string; eventName?: string; fromDate?: string; toDate?: string; }): Promise<GemsTransaction[]> => {
   try {
-    // Endpoint: /gems/transactions
     const response = await apiClient.get('/gems/transactions', {
-      params: { status, ...filters }
+      params: { status, ...cleanFilters(filters) }
     });
     return response.data;
   } catch (error) {
@@ -52,8 +62,7 @@ export const getGemsTransactions = async (status: string, filters: { geNumber?: 
 
 export const getGpfStats = async (filters: { kgid?: string; fromDate?: string; toDate?: string; }) => {
   try {
-    // Endpoint: /gpf/stats
-    const response = await apiClient.get('/gpf/stats', { params: filters });
+    const response = await apiClient.get('/gpf/stats', { params: cleanFilters(filters) });
     return response.data;
   } catch (error) {
     console.error("Error fetching GPF stats:", error);
@@ -63,9 +72,8 @@ export const getGpfStats = async (filters: { kgid?: string; fromDate?: string; t
 
 export const getGpfTransactions = async (status: string, filters: { kgid?: string; fromDate?: string; toDate?: string; }): Promise<GpfTransaction[]> => {
   try {
-    // Endpoint: /gpf/transactions
     const response = await apiClient.get('/gpf/transactions', {
-      params: { status, ...filters }
+      params: { status, ...cleanFilters(filters) }
     });
     return response.data;
   } catch (error) {
@@ -78,10 +86,8 @@ export const getGpfTransactions = async (status: string, filters: { kgid?: strin
 
 export const loginUser = async (username: string, password: string): Promise<{ success: boolean; user?: { username: string; role: string }, token?: string }> => {
   try {
-    // Endpoint: /auth/login
     const response = await apiClient.post('/auth/login', { username, password });
     if (response.data && response.data.token) {
-      // localStorage.setItem('authToken', response.data.token); // Optional: store JWT
       return { success: true, user: response.data.user, token: response.data.token };
     }
     return { success: false };
@@ -93,10 +99,8 @@ export const loginUser = async (username: string, password: string): Promise<{ s
 
 export const signupUser = async (username: string, password: string): Promise<{ success: boolean; user?: { username: string; role: string }, token?: string }> => {
   try {
-    // Endpoint: /auth/signup
     const response = await apiClient.post('/auth/signup', { username, password });
     if (response.data && response.data.token) {
-      // localStorage.setItem('authToken', response.data.token); // Optional: store JWT
       return { success: true, user: response.data.user, token: response.data.token };
     }
     return { success: false };
