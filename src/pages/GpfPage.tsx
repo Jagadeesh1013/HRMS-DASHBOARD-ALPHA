@@ -12,11 +12,12 @@ const ITEMS_PER_PAGE = 10;
 
 const GpfPage: React.FC = () => {
   const [statusCounts, setStatusCounts] = useState({ JSON_SENT: 0, HRMS_RECEIVED: 0, HRMS_REJECTED: 0 });
+  const [totalTransactions, setTotalTransactions] = useState(0);
   const [tableData, setTableData] = useState<GpfTransaction[]>([]);
   const [filters, setFilters] = useState({ kgid: '', fromDate: '', toDate: '' });
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
-  const [isTableLoading, setIsTableLoading] = useState(true); // Start as true for initial load
+  const [isTableLoading, setIsTableLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
   const debouncedFilters = useDebounce(filters, 500);
@@ -24,8 +25,11 @@ const GpfPage: React.FC = () => {
   const fetchStats = useCallback(async () => {
     setIsStatsLoading(true);
     try {
-      const counts = await getGpfStats(debouncedFilters);
-      setStatusCounts(counts);
+      const statsData = await getGpfStats(debouncedFilters);
+      if (statsData) {
+        setStatusCounts(statsData.statusCounts || { JSON_SENT: 0, HRMS_RECEIVED: 0, HRMS_REJECTED: 0 });
+        setTotalTransactions(statsData.totalTransactions || 0);
+      }
     } catch (error) {
       console.error("Failed to fetch GPF stats:", error);
     } finally {
@@ -39,7 +43,8 @@ const GpfPage: React.FC = () => {
     try {
       const data = await getGpfTransactions(selectedStatus, debouncedFilters);
       setTableData(data);
-    } catch (error)      console.error("Failed to fetch GPF transactions:", error);
+    } catch (error) {
+      console.error("Failed to fetch GPF transactions:", error);
       setTableData([]);
     } finally {
       setIsTableLoading(false);
@@ -122,7 +127,6 @@ const GpfPage: React.FC = () => {
     { key: 'HRMS_REJECTED', title: 'HRMS Rejection', value: statusCounts.HRMS_REJECTED, icon: UserX, iconBgGradient: 'from-red-500 to-rose-600', borderColor: 'hover:border-red-500' },
   ];
 
-  const totalTransactions = Object.values(statusCounts).reduce((a, b) => a + b, 0);
   const totalPages = Math.ceil(tableData.length / ITEMS_PER_PAGE);
   const paginatedData = tableData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
