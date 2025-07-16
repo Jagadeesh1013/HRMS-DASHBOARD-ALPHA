@@ -9,18 +9,34 @@ import { Filter, Eye, EyeOff, Download, Info, Send, FileText, CheckCircle, XCirc
 
 const GemsPage: React.FC = () => {
   const [statusCounts, setStatusCounts] = useState({ JSON_SENT: 0, PDF_SENT: 0, HRMS_RECEIVED: 0, HRMS_REJECTED: 0, DDO_RECEIVED: 0, DDO_REJECTED: 0 });
+  const [totalTransactions, setTotalTransactions] = useState(0);
   const [tableData, setTableData] = useState<GemsTransaction[]>([]);
   const [filters, setFilters] = useState({ geNumber: '', eventName: '', fromDate: '', toDate: '' });
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [showCards, setShowCards] = useState(true);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
+<<<<<<< HEAD
   const [isTableLoading, setIsTableLoading] = useState(false);
+=======
+  const [isTableLoading, setIsTableLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const debouncedFilters = useDebounce(filters, 500);
+>>>>>>> a0e5663337b0baee8b919c091f382bc4baa93740
 
   const fetchStats = useCallback(async () => {
     setIsStatsLoading(true);
     try {
+<<<<<<< HEAD
       const counts = await getGemsStats(filters);
       setStatusCounts(counts);
+=======
+      const statsData = await getGemsStats(debouncedFilters);
+      if (statsData) {
+        setStatusCounts(statsData.statusCounts || { JSON_SENT: 0, PDF_SENT: 0, HRMS_RECEIVED: 0, HRMS_REJECTED: 0, DDO_RECEIVED: 0, DDO_REJECTED: 0 });
+        setTotalTransactions(statsData.totalTransactions || 0);
+      }
+>>>>>>> a0e5663337b0baee8b919c091f382bc4baa93740
     } catch (error) {
       console.error("Failed to fetch GEMS stats:", error);
     } finally {
@@ -129,6 +145,12 @@ const GemsPage: React.FC = () => {
     setSelectedStatus(selectedStatus === status ? null : status);
   };
 
+<<<<<<< HEAD
+=======
+  const totalPages = Math.ceil(tableData.length / ITEMS_PER_PAGE);
+  const paginatedData = tableData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+>>>>>>> a0e5663337b0baee8b919c091f382bc4baa93740
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />

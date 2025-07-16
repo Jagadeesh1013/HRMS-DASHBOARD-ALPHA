@@ -10,7 +10,11 @@ const apiClient = axios.create({
   },
 });
 
+<<<<<<< HEAD
 // --- STEP 2: ATTACH JWT AUTH HEADER ---
+=======
+// --- JWT AUTHENTICATION REQUEST INTERCEPTOR ---
+>>>>>>> a0e5663337b0baee8b919c091f382bc4baa93740
 apiClient.interceptors.request.use(config => {
   const token = localStorage.getItem('authToken');
   if (token) {
@@ -19,11 +23,37 @@ apiClient.interceptors.request.use(config => {
   return config;
 });
 
+<<<<<<< HEAD
 // --- STEP 3: ERROR HANDLER ---
 const handleApiError = (context: string, error: unknown, fallback: any) => {
   console.error(`[API Error] ${context}:`, error);
   return fallback;
 };
+=======
+// --- NEW: GLOBAL AUTHENTICATION RESPONSE INTERCEPTOR ---
+// This will automatically handle 401/403 errors and log the user out.
+apiClient.interceptors.response.use(
+  response => response, // Pass through successful responses
+  error => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      console.error("Authentication Error:", error.response.status, "Logging out.");
+      // Clear user session from storage
+      localStorage.removeItem('user');
+      localStorage.removeItem('authToken');
+      // Redirect to the login page to re-authenticate
+      // We use window.location to navigate outside of React's router context
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    // Return the error to be caught by the original function call
+    return Promise.reject(error);
+  }
+);
+
+
+// --- GEMS API ---
+>>>>>>> a0e5663337b0baee8b919c091f382bc4baa93740
 
 // --- GEMS API ---
 export const getGemsStats = async (filters: {
